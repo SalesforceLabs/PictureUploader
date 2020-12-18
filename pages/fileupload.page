@@ -1,0 +1,193 @@
+<apex:page id="uploadImagePage" standardController="Contact" extensions="Contactsextension" standardStylesheets="false" showHeader="false" sidebar="false" applyHtmlTag="false" applyBodyTag="false" docType="html-5.0">
+    
+    <html xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" lang="en">
+        
+        <head>
+            <link rel="stylesheet" href="{!URLFOR($Resource.PictureUploader, '/assets/styles/salesforce-lightning-design-system.min.css')}" />  
+            
+            <style type="text/css">
+                .wrapper {
+                    padding: 2rem;
+                }
+                
+                .contact-picture {
+                    text-align: center;
+                    margin-bottom: 1rem;
+                }
+                
+                .slds-form--stacked {
+                    padding-left: 1rem;
+                }
+
+                .newAttach {
+                    width: 0.1px;
+                    height: 0.1px;
+                    opacity: 0;
+                    overflow: hidden;
+                    position: absolute;
+                    z-index: -1;
+                }
+                
+                .newAttach + label { }
+                
+                .newAttach + label {
+                    cursor: pointer; /* "hand" cursor */
+                }
+                .newAttach:focus + label {
+                    outline: 1px dotted #000;
+                    outline: -webkit-focus-ring-color auto 5px;
+                }
+                
+                html {display : none; }
+            </style>
+            <script>
+                if ( self === top ) {
+                    document.documentElement.style.display = 'block';
+                }
+                else {
+                    top.location = self.location;
+                }
+			</script>
+        </head>
+        <body>
+            
+            <div class="slds">
+                
+                <div class="wrapper">
+                    <apex:form id="uploadAttachment">
+                    
+                    
+                    <!-- RESPONSIVE GRID EXAMPLE -->
+                    <div class="slds-grid slds-wrap">
+                        
+                        <div class="slds-col slds-size--1-of-1 slds-small-size--1-of-4 slds-medium-size--1-of-4">
+                            <div class="slds-media__figure contact-picture">
+                                <apex:outputpanel id="image" layout="block">
+                                    <span class="slds-avatar">
+                                        <apex:image value="{!URLFOR($Resource.PictureUploader, '/default-avatar.png')}" rendered="{!NOT( hasPicture )}" height="100" width="100"/>
+                                        <apex:image value="/servlet/servlet.FileDownload?file={!file.Id}" rendered="{!hasPicture}" height="100" width="100"/>
+                                    </span>
+                                </apex:outputpanel>
+                            </div>
+                        </div>
+                        
+                        <div class="slds-col slds-size--1-of-1 slds-small-size--3-of-4 slds-medium-size--3-of-4">
+                            
+                            <div class="slds-form--stacked">
+                            
+                                <div class="slds-form-element">
+                                    <label class="slds-form-element__label" >1. Select the File</label>
+                                    <div class="slds-form-element__control">
+                                        <apex:inputFile value="{!newAttach.Body}" 
+                                                        id="newAttach" 
+                                                        styleclass="newAttach" 
+                                                        contentType="{!newAttach.ContentType}" 
+                                                        filename="{!newAttach.Name}" 
+                                                        fileSize="{!newAttach.BodyLength}"  />
+                                        <!-- <apex:outputLabel value="Choose a file" for="newAttach" styleClass="slds-button slds-button--neutral"  /> -->
+                                        <label for="uploadImagePage:uploadAttachment:newAttach" class="slds-button slds-button--neutral" >
+                                            <svg aria-hidden="true" class="slds-button__icon slds-button__icon--left">
+                                                <use xlink:href="{!URLFOR($Resource.PictureUploader, '/assets/icons/utility-sprite/svg/symbols.svg#image')}"></use>
+                                            </svg><span>Choose a file</span>
+                                        </label>
+                                        <br/> 
+                                        <apex:outputText value="{!JSENCODE(HTMLENCODE(error))}" styleClass="errorMsg"/> 
+                                    </div>
+                                </div>
+    
+                                <div class="slds-form-element">
+                                    <label class="slds-form-element__label" for="">2. Click the "Upload" button or "Delete" button in order to delete the current picture</label>
+                                    <div class="slds-form-element__control">
+                                        <div class="slds-button-group" role="group">     
+                                            <apex:commandLink id="Accept" action="{!uploadAction}" onclick="return verifyNameLength();" styleClass="slds-button slds-button--neutral">
+                                                <svg aria-hidden="true" class="slds-button__icon slds-button__icon--left">
+                                                    <use xlink:href="{!URLFOR($Resource.PictureUploader, '/assets/icons/utility-sprite/svg/symbols.svg#upload')}"></use>
+                                                </svg>Upload
+                                            </apex:commandLink>
+                                            <apex:commandLink id="Delete" action="{!deleteAction}" rendered="{!hasPicture}" onclick="return confirm('Are you sure you want to delete the current image?')" styleClass="slds-button slds-button--neutral">
+                                                <svg aria-hidden="true" class="slds-button__icon slds-button__icon--left">
+                                                    <use xlink:href="{!URLFOR($Resource.PictureUploader, '/assets/icons/utility-sprite/svg/symbols.svg#delete')}"></use>
+                                                </svg>Delete
+                                            </apex:commandLink>
+                                            <apex:commandLink id="Cancel" action="{!cancel}" styleClass="slds-button slds-button--neutral">
+                                                <svg aria-hidden="true" class="slds-button__icon slds-button__icon--left">
+                                                    <use xlink:href="{!URLFOR($Resource.PictureUploader, '/assets/icons/utility-sprite/svg/symbols.svg#close')}"></use>
+                                                </svg>Cancel
+                                            </apex:commandLink>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                        </div>
+                    </div> <!-- end of slds-grid slds-wrap -->
+
+                </apex:form> 
+                </div> <!-- end of wrapper -->
+            </div> <!-- end of slds -->
+            
+            
+            
+            <script>
+          
+            function load() {
+                console.log("load event detected!");
+                document.getElementsByClassName("newAttach")[0].setAttribute("data-multiple-caption", "{count} files selected");
+                document.getElementsByClassName("newAttach")[0].setAttribute("multiple", "multiple");
+                
+                var inputs = document.querySelectorAll( '.newAttach' );
+                console.log('inputs',inputs);
+                Array.prototype.forEach.call( inputs, function( input ) {
+                    var label    = input.nextElementSibling;
+                    console.log('label',label);
+                    var labelVal = label.innerHTML;
+                    console.log('labelVal',labelVal);
+                
+                    input.addEventListener( 'change', function( e )
+                    {
+                        var fileName = '';
+                        if( this.files && this.files.length > 1 )
+                            fileName = ( this.getAttribute( 'data-multiple-caption' ) || '' ).replace( '{count}', this.files.length );
+                        else
+                            fileName = e.target.value.split( '\\' ).pop();
+                
+                        if( fileName )
+                            label.querySelector( 'span' ).innerHTML = fileName;
+                        // label.innerHTML = fileName;
+                        else
+                            label.innerHTML = labelVal;
+                    });
+                });
+            }
+            window.onload = load;
+            
+            function verifyNameLength(){
+                var textVal = document.getElementsByName('uploadImagePage:uploadAttachment:newAttach:inputFile:file')[0].value;
+                
+                if( textVal != "" )     {
+                    var browser = navigator.userAgent;
+                    var fileName = textVal;
+                    
+                    if( browser.search( 'MSIE' ) > 0 ) {
+                        var index       = textVal.lastIndexOf( '\\' );
+                        fileName        = textVal.substring( index +1);
+                    } 
+                    
+                    if( fileName.length < 70) {
+                        return true;
+                    };
+                };
+                if( textVal == "" )     {
+                    alert( 'Please select an image to upload' );
+                } else {
+                    alert( 'The file name must be 70 characters maximum' );
+                }
+                document.getElementById('uploadImagePage:uploadAttachment').reset();
+                return false;
+            }
+
+            </script>
+            
+        </body>
+    </html>
+</apex:page>

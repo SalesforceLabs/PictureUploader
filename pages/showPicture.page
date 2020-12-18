@@ -1,0 +1,38 @@
+<apex:page id="showImagePage" standardController="Contact" extensions="ShowPicture" standardStylesheets="false" showHeader="false" sidebar="false" applyHtmlTag="false" applyBodyTag="false" docType="html-5.0">
+    <html xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" lang="en">
+        
+        <head>
+            <link rel="stylesheet" href="{!URLFOR($Resource.PictureUploader, '/assets/styles/salesforce-lightning-design-system.min.css')}" />  
+            
+            <style type="text/css">
+                .wrapper { 
+                    margin: 0 auto; 
+                    text-align: center;
+                }
+                .slds-media__figure { margin-right: 0; }
+                
+                .contact-img { max-height: 120px; }
+            </style>
+        </head>
+        
+        <body>
+            <div class="slds">
+                
+                <div class="wrapper">
+                    <div class="slds-media__figure">
+                        <apex:outputpanel id="image" layout="block">
+                            <span class="slds-avatar">
+                                <apex:image value="{!URLFOR($Resource.PictureUploader, '/default-avatar.png')}" rendered="{!NOT( hasPicture )}" styleClass="contact-img" />
+                                <apex:image value="/servlet/servlet.FileDownload?file={!file.Id}" rendered="{!hasPicture}" styleClass="contact-img" />
+                            </span>
+                        </apex:outputpanel>
+                    </div>    
+                </div>
+                
+            </div>
+            
+        </body>
+        
+    </html>
+    
+</apex:page>
